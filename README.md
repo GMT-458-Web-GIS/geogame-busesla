@@ -1,14 +1,16 @@
 # 🌍 Global Dance Locator - GeoGame Assignment 💃🕺✨
 
 **Buse Sıla Dolu** 
-**TASK:** GeoGame
+
 
 ---
 
 ## 📸 Blending Culture & Coordinates
 
 The following image captures the essence of the **"Global Dance Locator"** GeoGame. It represents the successful fusion of dynamic dance culture (silhouettes, music notes) with essential geospatial tools (compass, map coordinates).
-![oyun amblemi]("C:\Users\User\Downloads\globaldancelocator.png")
+
+
+<img width="420" height="321" alt="globaldancelocator" src="https://github.com/user-attachments/assets/6e1e7162-1e83-4c1c-b704-c682ebd8ec86" />
 
 
 
