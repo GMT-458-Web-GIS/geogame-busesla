@@ -8,7 +8,8 @@
 ## 📸 Blending Culture & Coordinates
 
 The following image captures the essence of the **"Global Dance Locator"** GeoGame. It represents the successful fusion of dynamic dance culture (silhouettes, music notes) with essential geospatial tools (compass, map coordinates).
-![geogame amblem]("globaldancelocator.png")
+![geogame amblem] <img width="620" height="621" alt="globaldancelocator" src="https://github.com/user-attachments/assets/bace0de2-1d63-4fd7-aa96-4de0942a519f" />
+
 
 
 
