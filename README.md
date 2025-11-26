@@ -62,6 +62,8 @@ My design prioritizes the map interaction. The screen is strategically split to 
 * **Game Over Condition:**
     1.  ❌ The 60-second timer hits zero.
     2.  ❌ The user's lives count drops to zero.
+       
+<img width="610" height="656" alt="scheme" src="https://github.com/user-attachments/assets/3b2185af-3dd4-477e-bd02-6f53579af41e" />
 
 ---
 
