@@ -9,94 +9,139 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 <style>
-    :root{
-    --accent:#0b6fb5;
-    --bg:#f6f8fb;
-    --card:#ffffff;
-    --muted:#6b7280;
-    }
-    html,body{height:100%;margin:0;font-family:Inter,Arial,Helvetica,sans-serif;background:var(--bg);color:#0f1724}
-    .app{display:grid;grid-template-columns:1fr 360px;gap:12px;height:100vh;padding:12px}
-    .map-card{background:var(--card);border-radius:12px;box-shadow:0 6px 18px rgba(10,10,10,.06);overflow:hidden;display:flex;flex-direction:column}
-    #map{flex:1}
-    .sidebar{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(10,10,10,.06);display:flex;flex-direction:column;gap:12px}
-    h1{margin:0;font-size:18px}
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .controls{display:flex;gap:8px;flex-wrap:wrap}
-    button{background:var(--accent);color:white;border:0;padding:8px 10px;border-radius:8px;cursor:pointer}
-    button.secondary{background:#eee;color:#222}
-    .stat{background:#fafafa;border-radius:8px;padding:8px}
-    .small{font-size:13px;color:var(--muted)}
-    .log{height:120px;overflow:auto;background:#0f1724;color:#e6eef8;padding:8px;border-radius:8px;font-family:monospace}
-    canvas{background:white;border-radius:8px;padding:6px}
-    .questionBox{font-weight:700;font-size:16px;padding:8px;border-radius:8px;background:#fff4e6;border:1px solid #ffd8a8}
-    .footer{font-size:12px;color:var(--muted)}
-    .badge{background:#eef2ff;color:#1e40af;padding:4px 8px;border-radius:999px;font-weight:600}
-    .top-left-btn{position:absolute;z-index:9999;left:16px;top:16px;background:#ff7b00;color:white;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.12)}
-    /* responsive */
-    @media (max-width:900px){ .app{grid-template-columns:1fr;grid-template-rows:1fr 360px} .top-left-btn{left:10px;top:10px} }
+:root{
+--accent:#0b6fb5;
+--bg:#f6f8fb;
+--card:#ffffff;
+--muted:#6b7280;
+}
+html,body{height:100%;margin:0;font-family:Inter,Arial,Helvetica,sans-serif;background:var(--bg);color:#0f1724}
+
+/* ===== WELCOME SCREEN ===== */
+#welcomeScreen{
+position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;
+flex-direction:column;overflow:hidden;background:#000;
+transition:opacity .6s ease;
+}
+#welcomeScreen video, #welcomeScreen img{
+position:absolute;width:100%;height:100%;object-fit:cover;z-index:1;
+}
+#welcomeScreen video{opacity:0.78}
+#welcomeScreen .content{
+position:relative;z-index:10;color:white;text-align:center;padding:24px;
+backdrop-filter: blur(3px);
+}
+#welcomeScreen h1{font-size:42px;margin:0 0 8px 0}
+#welcomeScreen p{margin:0 0 16px 0;font-size:18px}
+#welcomeScreen .btn{
+padding:12px 20px;border-radius:10px;border:0;background:#ff7b00;color:white;font-weight:700;
+cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.25)
+}
+#welcomeScreen .note{font-size:13px;margin-top:10px;color:rgba(255,255,255,.85)}
+
+/* ===== APP LAYOUT ===== */
+.app{display:grid;grid-template-columns:1fr 360px;gap:12px;height:100vh;padding:12px;visibility:hidden}
+.map-card{background:var(--card);border-radius:12px;box-shadow:0 6px 18px rgba(10,10,10,.06);overflow:hidden;display:flex;flex-direction:column}
+#map{flex:1; width:100%; height:100%;}
+.sidebar{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(10,10,10,.06);display:flex;flex-direction:column;gap:12px}
+h1{margin:0;font-size:18px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+.btn-main{background:var(--accent);color:white;border:0;padding:8px 10px;border-radius:8px;cursor:pointer}
+button.secondary{background:#eee;color:#222}
+.stat{background:#fafafa;border-radius:8px;padding:8px}
+.small{font-size:13px;color:var(--muted)}
+.log{height:120px;overflow:auto;background:#0f1724;color:#e6eef8;padding:8px;border-radius:8px;font-family:monospace}
+canvas{background:white;border-radius:8px;padding:6px}
+.questionBox{font-weight:700;font-size:16px;padding:8px;border-radius:8px;background:#fff4e6;border:1px solid #ffd8a8}
+.footer{font-size:12px;color:var(--muted)}
+.badge{background:#eef2ff;color:#1e40af;padding:4px 8px;border-radius:999px;font-weight:600}
+.top-left-btn{position:absolute;z-index:9999;left:16px;top:16px;background:#ff7b00;color:white;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.12)}
+@media (max-width:900px){ .app{grid-template-columns:1fr;grid-template-rows:1fr 360px} .top-left-btn{left:10px;top:10px} }
 </style>
 </head>
 <body>
+
+<!-- welcome -->
+<div id="welcomeScreen" aria-hidden="false">
+<!-- try video first -->
+<video id="bgVideo" autoplay muted loop playsinline preload="auto">
+    <source src="welcome.mp4" type="video/mp4">
+    <!-- if browser can't play video, we'll show image fallback below -->
+</video>
+<!-- image fallback (will appear if video fails/blocked) -->
+<img id="bgImage" src="welcomepage.jpeg" alt="welcome" style="display:none" />
+
+<div class="content">
+    <h1>Global Dance Locator</h1>
+    <p>Dünyanın dört bir yanındaki dansların kökenini haritada tahmin et — Hız + Doğruluk = Yüksek Skor</p>
+    <div>
+    <button class="btn" onclick="startGame()">Oyuna Başla</button>
+    </div>
+</div>
+</div>
+
+<!-- top-left quick button -->
 <button class="top-left-btn" id="toggleHeatBtn">Toggle Heatmap</button>
 
-<div class="app">
-    <div class="map-card">
+<!-- main app (hidden until start) -->
+<div class="app" id="appRoot" style="visibility:hidden;opacity:0;transition:opacity .5s ease">
+<div class="map-card">
     <div style="padding:12px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee">
-        <div>
+    <div>
         <h1>Global Dance Locator</h1>
         <div class="small">60s tur — dansın menşeini haritada tahmin et. Hız + Doğruluk = yüksek skor.</div>
-        </div>
-        <div class="small">Buse Sıla Dolu — GeoGame</div>
     </div>
-    <div id="map"></div>
+    <div class="small">Buse Sıla Dolu — GeoGame</div>
     </div>
+    <div id="map" aria-hidden="true"></div>
+</div>
 
-    <div class="sidebar">
+<div class="sidebar">
     <div class="topbar">
-        <div>
+    <div>
         <div class="stat"><strong>Score</strong>&nbsp; <span id="score">0</span></div>
         <div style="margin-top:8px" class="stat"><strong>Lives</strong>&nbsp; <span id="lives">3</span></div>
-        </div>
-        <div>
+    </div>
+    <div>
         <div class="stat"><strong>Timer</strong>&nbsp; <span id="timer">60</span>s</div>
         <div style="margin-top:8px" class="stat"><strong>Round</strong>&nbsp; <span id="round">0</span></div>
-        </div>
+    </div>
     </div>
 
     <div class="questionBox" id="questionBox">Press Start to begin — the dance name will appear here.</div>
 
     <div class="controls">
-        <button id="startBtn">Start 60s</button>
-        <button id="nextBtn" class="secondary">Skip</button>
-        <button id="resetBtn" class="secondary">Reset</button>
-        <button id="toggleD3Btn" class="secondary">Toggle D3 Overlay</button>
+    <button id="startBtn" class="btn-main">Start 60s</button>
+    <button id="nextBtn" class="secondary">Skip</button>
+    <button id="resetBtn" class="secondary">Reset</button>
+    <button id="toggleD3Btn" class="secondary">Toggle D3 Overlay</button>
     </div>
 
     <div>
-        <canvas id="scoreChart" width="320" height="160"></canvas>
+    <canvas id="scoreChart" width="320" height="160"></canvas>
     </div>
 
     <div>
-        <div style="font-weight:600;margin-bottom:6px">Rules & Scoring</div>
-        <div class="small">
+    <div style="font-weight:600;margin-bottom:6px">Rules & Scoring</div>
+    <div class="small">
         • Süre: 60 saniye (tur).<br/>
-        • Skor: ≤100km → 100 pts, ≤500km→50 pts, ≤1000km→20 pts, else 0. (Not: dünya ölçeğinde sınırlar kilometre cinsinden ayarlanmıştır.)<br/>
+        • Skor: ≤100km → 100 pts, ≤500km→50 pts, ≤1000km→20 pts, else 0.<br/>
         • Çok uzak tahmin (>2000 km) → -1 hayat.<br/>
         • 3 hayat ile başlarsın. Zaman veya tüm hayatlar bittiğinde oyun biter.
-        </div>
+    </div>
     </div>
 
     <div>
-        <div style="font-weight:600;margin-bottom:6px">Game log</div>
-        <div class="log" id="log"></div>
+    <div style="font-weight:600;margin-bottom:6px">Game log</div>
+    <div class="log" id="log"></div>
     </div>
 
     <div class="footer">
-        Uses: Leaflet, D3.js (SVG overlay), Chart.js, leaflet.heat (heatmap).<br/>
-        To use your own dataset: preprocess dance origins to [{id,name,lat,lng}] and call <code>loadDanceData(yourArray)</code> in console.
+    Uses: Leaflet, D3.js (SVG overlay), Chart.js, leaflet.heat (heatmap).<br/>
+    To use your own dataset: preprocess dance origins to [{id,name,lat,lng}] and call <code>loadDanceData(yourArray)</code> in console.
     </div>
-    </div>
+</div>
 </div>
 
 <!-- Libraries -->
@@ -106,62 +151,34 @@
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
 <script>
-/****************************************************************
-   * Global Dance Locator — Single-file GeoGame
-   * - Leaflet map
-   * - D3 SVG overlay for visualizing each guess (accuracy colored)
-   * - Heatmap layer for dataset density (leaflet.heat)
-   * - Chart.js showing score evolution
-   ****************************************************************/
-
-  // ---------- Dance dataset (curated list 24 items) ----------
-  // Each entry: name, lat, lng (origin city approximate)
-  // You can expand or replace with real dataset via loadDanceData()
+/* ================= GLOBAL DATA & UI REFS ================= */
 window.danceData = [
-    {id:1,name:"Tango (Argentina)",lat:-34.603722,lng:-58.381592},
-    {id:2,name:"Samba (Brazil)",lat:-22.906847,lng:-43.172896},
-    {id:3,name:"Flamenco (Spain)",lat:37.389092,lng:-5.984459}, // Seville
-    {id:4,name:"Waltz (Austria)",lat:48.208174,lng:16.373819}, // Vienna
-    {id:5,name:"Kathak (India)",lat:27.175015,lng:78.042155}, // Agra area
-    {id:6,name:"Bharatanatyam (India)",lat:13.082680,lng:80.270718}, // Chennai area
-    {id:7,name:"Hula (Hawaii)",lat:19.896766,lng:-155.582782},
-    {id:8,name:"Salsa (Cuba)",lat:23.113592,lng:-82.366592},
-    {id:9,name:"Paso Doble (Spain)",lat:37.389092,lng:-5.984459},
-    {id:10,name:"Cumbia (Colombia)",lat:4.711000,lng:-74.072090}, // Bogota
-    {id:11,name:"Morris (England)",lat:51.507351,lng:-0.127758},
-    {id:12,name:"Irish Stepdance (Ireland)",lat:53.349805,lng:-6.260310},
-    {id:13,name:"K-Pop Dance (Korea)",lat:37.566536,lng:126.977966}, // Seoul
-    {id:14,name:"Tango (Uruguay)",lat:-34.901112,lng:-56.164531}, // Montevideo
-    {id:15,name:"Polka (Czechia/Poland)",lat:50.075538,lng:14.437800}, // Prague
-    {id:16,name:"Balinese Dance (Indonesia)",lat:-8.340539,lng:115.091949}, // Bali
-    {id:17,name:"Ghawazee / Raqs Sharqi (Egypt)",lat:30.044420,lng:31.235712}, // Cairo
-    {id:18,name:"Afrobeat Dance (Nigeria)",lat:6.524379,lng:3.379206}, // Lagos
-    {id:19,name:"Square Dance (USA)",lat:38.907192,lng:-77.036873}, // Washington DC (US folk)
-    {id:20,name:"Taarab (Tanzania)",lat:-6.792354,lng:39.208328}, // Zanzibar area
-    {id:21,name:"Flamenco (Granada)",lat:37.176078,lng:-3.598557},
-    {id:22,name:"Samba (Salvador)",lat:-12.977749,lng:-38.501629},
-    {id:23,name:"Merengue (Dominican Republic)",lat:18.735693,lng:-70.162651},
-    {id:24,name:"Capoeira (Brazil)",lat:-12.971389,lng:-38.501389} // Salvador/Bahia
+{id:1,name:"Tango (Argentina)",lat:-34.603722,lng:-58.381592},
+{id:2,name:"Samba (Brazil)",lat:-22.906847,lng:-43.172896},
+{id:3,name:"Flamenco (Spain)",lat:37.389092,lng:-5.984459},
+{id:4,name:"Waltz (Austria)",lat:48.208174,lng:16.373819},
+{id:5,name:"Kathak (India)",lat:27.175015,lng:78.042155},
+{id:6,name:"Bharatanatyam (India)",lat:13.082680,lng:80.270718},
+{id:7,name:"Hula (Hawaii)",lat:19.896766,lng:-155.582782},
+{id:8,name:"Salsa (Cuba)",lat:23.113592,lng:-82.366592},
+{id:9,name:"Paso Doble (Spain)",lat:37.389092,lng:-5.984459},
+{id:10,name:"Cumbia (Colombia)",lat:4.711000,lng:-74.072090},
+{id:11,name:"Morris (England)",lat:51.507351,lng:-0.127758},
+{id:12,name:"Irish Stepdance (Ireland)",lat:53.349805,lng:-6.260310},
+{id:13,name:"K-Pop Dance (Korea)",lat:37.566536,lng:126.977966},
+{id:14,name:"Tango (Uruguay)",lat:-34.901112,lng:-56.164531},
+{id:15,name:"Polka (Czechia/Poland)",lat:50.075538,lng:14.437800},
+{id:16,name:"Balinese Dance (Indonesia)",lat:-8.340539,lng:115.091949},
+{id:17,name:"Ghawazee / Raqs Sharqi (Egypt)",lat:30.044420,lng:31.235712},
+{id:18,name:"Afrobeat Dance (Nigeria)",lat:6.524379,lng:3.379206},
+{id:19,name:"Square Dance (USA)",lat:38.907192,lng:-77.036873},
+{id:20,name:"Taarab (Tanzania)",lat:-6.792354,lng:39.208328},
+{id:21,name:"Flamenco (Granada)",lat:37.176078,lng:-3.598557},
+{id:22,name:"Samba (Salvador)",lat:-12.977749,lng:-38.501629},
+{id:23,name:"Merengue (Dominican Republic)",lat:18.735693,lng:-70.162651},
+{id:24,name:"Capoeira (Brazil)",lat:-12.971389,lng:-38.501389}
 ];
 
-  // ---------- Map init ----------
-const map = L.map('map',{worldCopyJump:true}).setView([20,0], 2);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
-
-  // D3 overlay setup: add SVG layer on top of map panes
-  // We'll use leaflet's overlayPane for consistent projection
-const svgLayer = L.svg({pane: 'overlayPane'}).addTo(map);
-const svg = d3.select("#map").select("svg");
-const g = svg.append("g").attr("class","d3-overlay");
-
-  // Chart.js for score history
-const ctx = document.getElementById('scoreChart').getContext('2d');
-const scoreChart = new Chart(ctx,{type:'line',data:{labels:[],datasets:[{label:'Score',data:[],fill:false,tension:0.3}]},options:{scales:{y:{beginAtZero:true}}}});
-
-  // Heatmap
-let heatLayer = null;
-
-  // UI references
 const startBtn = document.getElementById('startBtn');
 const nextBtn = document.getElementById('nextBtn');
 const resetBtn = document.getElementById('resetBtn');
@@ -173,224 +190,234 @@ const timerEl = document.getElementById('timer');
 const roundEl = document.getElementById('round');
 const logEl = document.getElementById('log');
 const questionBox = document.getElementById('questionBox');
+const appRoot = document.getElementById('appRoot');
+const welcomeScreen = document.getElementById('welcomeScreen');
+const bgVideo = document.getElementById('bgVideo');
+const bgImage = document.getElementById('bgImage');
 
-  // Game state
+/* ================= GAME STATE ================= */
+let map = null;
+let svg = null;
+let g = null;
+let heatLayer = null;
+let scoreChart = null;
+
 let gameState = {
-    running:false,
-    score:0,
-    lives:3,
-    round:0,
-    timer:60,
-    current:null,
-    history:[],
-    d3Visible:true,
-    heatVisible:false
+running:false, score:0, lives:3, round:0, timer:60, current:null, history:[], d3Visible:true, heatVisible:false
 };
 
-  // Utility: haversine (meters)
-function haversine(lat1,lon1,lat2,lon2){
-    function toRad(x){return x*Math.PI/180}
-    const R=6371000;
-    const dLat=toRad(lat2-lat1);
-    const dLon=toRad(lon2-lon1);
-    const a=Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
-    return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
+let timerInterval = null;
 
+/* ============== UTILS ============== */
 function infoLog(msg){
-    const t=(new Date()).toLocaleTimeString();
-    logEl.innerHTML = `<div>[${t}] ${msg}</div>` + logEl.innerHTML;
+const t=(new Date()).toLocaleTimeString();
+logEl.innerHTML = `<div>[${t}] ${msg}</div>` + logEl.innerHTML;
 }
 
-  // Spawn next dance question (random)
+function toRad(x){ return x*Math.PI/180; }
+function haversine(lat1,lon1,lat2,lon2){
+const R=6371000;
+const dLat=toRad(lat2-lat1), dLon=toRad(lon2-lon1);
+const a=Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+/* ============== MAP & OVERLAY INITIALIZATION ============== */
+function initMap(){
+if(map) return;
+  // create map
+map = L.map('map',{worldCopyJump:true}).setView([20,0],2);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
+
+  // add svg overlay for D3
+const svgLayer = L.svg({pane:'overlayPane'}).addTo(map);
+svg = d3.select("#map").select("svg");
+g = svg.append("g").attr("class","d3-overlay");
+
+  // Chart.js init
+const ctx = document.getElementById('scoreChart').getContext('2d');
+scoreChart = new Chart(ctx,{type:'line',data:{labels:[],datasets:[{label:'Score',data:[],fill:false,tension:0.3}]},options:{scales:{y:{beginAtZero:true}}}});
+
+  // map click handler (guesses)
+map.on('click', function(e){ handleGuessClick(e.latlng); });
+
+  // keep overlay alignment if needed
+map.on('moveend', repositionSVG);
+map.on('zoomend', repositionSVG);
+
+infoLog('Map initialized.');
+}
+
+/* reposition placeholder (we use transient visuals so little to do) */
+function repositionSVG(){ /* if storing lat/lng persistent visuals, redraw here */ }
+
+/* ============== GAME LOGIC ============== */
 function spawnQuestion(){
-    const idx = Math.floor(Math.random()*window.danceData.length);
-    const chosen = window.danceData[idx];
-    gameState.current = chosen;
-    gameState.round += 1;
-    roundEl.textContent = gameState.round;
-    questionBox.textContent = `Where does this dance come from? → ${chosen.name}`;
-    infoLog(`New question: ${chosen.name}`);
-}
-
-  // Manage D3 overlay: add a colored circle for each guess
-function projectPoint(lat,lng){
-    return map.latLngToLayerPoint([lat,lng]);
+const idx = Math.floor(Math.random()*window.danceData.length);
+const chosen = window.danceData[idx];
+gameState.current = chosen;
+gameState.round += 1;
+roundEl.textContent = gameState.round;
+questionBox.textContent = `Where does this dance come from? → ${chosen.name}`;
+infoLog(`New question: ${chosen.name}`);
 }
 
 function drawGuessSVG(lat,lng,distance){
-    // distance in meters -> color mapping (green close, red far)
-    const max = 2000000; // 2000 km cap for color scale exposure
-    const v = Math.min(distance, max)/max; // 0..1
-    const color = d3.interpolateRgb("#2ecc71","#e74c3c")(v); // green -> red
-    const p = projectPoint(lat,lng);
-
-    const circle = g.append("circle")
+if(!g || !map) return;
+const max = 2000000;
+const v = Math.min(distance,max)/max;
+const color = d3.interpolateRgb("#2ecc71","#e74c3c")(v);
+const p = map.latLngToLayerPoint([lat,lng]);
+const circle = g.append("circle")
     .attr("cx",p.x).attr("cy",p.y)
-      .attr("r",8 + Math.min(40, Math.log(distance+1)/Math.log(1.5))) // radius scaled by distance
-    .attr("fill", color)
-    .attr("fill-opacity", 0.75)
-    .attr("stroke","#111")
-    .attr("stroke-opacity",0.15)
-    .attr("pointer-events","none");
-
-    // fade out and remove after 3s
-    circle.transition().duration(3000).attr("fill-opacity",0.0).remove();
+    .attr("r",8 + Math.min(40, Math.log(distance+1)/Math.log(1.5)))
+    .attr("fill", color).attr("fill-opacity",0.75)
+    .attr("stroke","#111").attr("stroke-opacity",0.15).attr("pointer-events","none");
+circle.transition().duration(3000).attr("fill-opacity",0.0).remove();
 }
 
-  // Must reposition D3 overlay on map move/zoom
-function refreshOverlay(){
-    // D3 uses projected points so no full redraw is required here because each circle is absolute layer point.
-    // However when map moves, convert existing guesses (if we stored lat/lng) - for simplicity, we clear overlay to avoid complex state.
-    // (We produce transient visuals per guess; persistent markers can be implemented similarly.)
-}
-
-  map.on("move", function(){ /* transient visuals; nothing persistent to reproject */ });
-
-  // Handle a user's guess (click)
 function handleGuessClick(latlng){
-    if(!gameState.running){ infoLog("Game not running — press Start."); return; }
-    if(!gameState.current){ infoLog("No active question — wait for next."); return; }
+if(!gameState.running){ infoLog("Game not running — press Start."); return; }
+if(!gameState.current){ infoLog("No active question — wait for next."); return; }
 
-    const truePt = gameState.current;
-    const d = haversine(latlng.lat,latlng.lng,truePt.lat,truePt.lng); // meters
-    // scoring in METERS but user spec had km; we will compute thresholds in meters (100m etc) but since global distances larger,
-    // adapt thresholds: use meters but allow larger thresholds to make sense globally.
-    // We'll use: <=100000 m (100 km) -> 100 pts; <=500000 m -> 50 pts; <=1000000 m -> 20 pts.
-    let points = 0;
-    if(d <= 100000) points = 100;
-    else if(d <= 500000) points = 50;
-    else if(d <= 1000000) points = 20;
-    else points = 0;
+const truePt = gameState.current;
+  const d = haversine(latlng.lat,latlng.lng,truePt.lat,truePt.lng); // meters
+let points = 0;
+if(d <= 100000) points = 100;
+else if(d <= 500000) points = 50;
+else if(d <= 1000000) points = 20;
+else points = 0;
 
-    gameState.score += points;
-    scoreEl.textContent = gameState.score;
-    gameState.history.push(gameState.score);
-    updateChart();
+gameState.score += points;
+scoreEl.textContent = gameState.score;
+gameState.history.push(gameState.score);
+updateChart();
 
-    // D3 visualization
-    if(gameState.d3Visible) drawGuessSVG(latlng.lat,latlng.lng,d);
+if(gameState.d3Visible) drawGuessSVG(latlng.lat,latlng.lng,d);
 
-    // show true location marker (temporary)
-    const trueMarker = L.circleMarker([truePt.lat,truePt.lng],{radius:6,color:'#0b6fb5',fill:true,fillOpacity:0.8}).addTo(map);
-    const guessMarker = L.circleMarker([latlng.lat,latlng.lng],{radius:6,color:'#ff7b00',fill:true,fillOpacity:0.8}).addTo(map);
+const trueMarker = L.circleMarker([truePt.lat,truePt.lng],{radius:6,color:'#0b6fb5',fill:true,fillOpacity:0.9}).addTo(map);
+const guessMarker = L.circleMarker([latlng.lat,latlng.lng],{radius:6,color:'#ff7b00',fill:true,fillOpacity:0.9}).addTo(map);
+const line = L.polyline([[latlng.lat,latlng.lng],[truePt.lat,truePt.lng]],{color:'#666',weight:1,dashArray:'4 6'}).addTo(map);
 
-    // draw line between guess and true
-    const line = L.polyline([[latlng.lat,latlng.lng],[truePt.lat,truePt.lng]],{color:'#666',weight:1,dashArray:'4 6'}).addTo(map);
+setTimeout(()=>{ try{ map.removeLayer(trueMarker); map.removeLayer(guessMarker); map.removeLayer(line);}catch(e){} },3500);
 
-    // auto-remove after 3500ms
-    setTimeout(()=>{ map.removeLayer(trueMarker); map.removeLayer(guessMarker); map.removeLayer(line); },3500);
-
-    // life penalty for very far (>2000km)
-    if(d > 2000000){
+if(d > 2000000){
     gameState.lives -= 1;
     livesEl.textContent = gameState.lives;
     infoLog(`Guess ${Math.round(d/1000)} km — Missed badly. -1 life.`);
-    } else {
+} else {
     infoLog(`Guess ${Math.round(d/1000)} km — +${points} pts.`);
-    }
-
-    // add to heat data if heat visible uses danceData; to produce heat, we maintain window._guessPoints
-    if(!window._guessPoints) window._guessPoints = [];
-    window._guessPoints.push([latlng.lat,latlng.lng, 0.6]);
-
-    // set current to null and spawn next after short delay
-    gameState.current = null;
-    setTimeout(()=>{ if(gameState.running && gameState.lives>0) spawnQuestion(); },600);
 }
 
-  // Map click handler
-map.on('click', function(e){ handleGuessClick(e.latlng); });
+if(!window._guessPoints) window._guessPoints = [];
+window._guessPoints.push([latlng.lat,latlng.lng, 0.6]);
 
-  // Timer control
-let timerInterval = null;
+gameState.current = null;
+setTimeout(()=>{ if(gameState.running && gameState.lives>0) spawnQuestion(); },600);
+}
+
+/* ============== TIMER & GAME CONTROL ============== */
+function updateChart(){
+const n = gameState.history.length;
+scoreChart.data.labels = Array.from({length:n},(_,i)=>i+1);
+scoreChart.data.datasets[0].data = gameState.history.slice();
+scoreChart.update();
+}
+
+function startGameUI(){
+  // show app, hide welcome with fade
+welcomeScreen.style.opacity = '0';
+setTimeout(()=>{ welcomeScreen.style.display = 'none'; appRoot.style.visibility='visible'; appRoot.style.opacity='1'; document.getElementById('map').setAttribute('aria-hidden','false'); },600);
+}
+
 function startGame(){
-    if(gameState.running) return;
-    gameState.running = true;
-    gameState.timer = 60;
-    timerEl.textContent = gameState.timer;
-    infoLog("Game started — 60s");
-    spawnQuestion();
-    timerInterval = setInterval(()=> {
+if(gameState.running) return;
+  // ensure map initialized
+initMap();
+startGameUI();
+
+gameState.running = true;
+gameState.timer = 60;
+timerEl.textContent = gameState.timer;
+infoLog("Game started — 60s");
+spawnQuestion();
+
+timerInterval = setInterval(()=> {
     gameState.timer -= 1;
     timerEl.textContent = gameState.timer;
     if(gameState.timer <= 0 || gameState.lives <= 0){
-        stopGame();
+    stopGame();
     }
-    },1000);
+},1000);
 }
 
 function stopGame(){
-    gameState.running = false;
-    if(timerInterval){ clearInterval(timerInterval); timerInterval = null; }
-    infoLog("Game ended. Final score: " + gameState.score);
-    setTimeout(()=>{ alert("Game over! Final score: " + gameState.score); },120);
+gameState.running = false;
+if(timerInterval){ clearInterval(timerInterval); timerInterval = null; }
+infoLog("Game ended. Final score: " + gameState.score);
+setTimeout(()=>{ alert("Game over! Final score: " + gameState.score); },120);
 }
 
 function resetGame(){
-    if(timerInterval){ clearInterval(timerInterval); timerInterval = null; }
-    gameState = {running:false,score:0,lives:3,round:0,timer:60,current:null,history:[],d3Visible:true,heatVisible:false};
-    scoreEl.textContent = '0'; livesEl.textContent = '3'; timerEl.textContent = '60'; roundEl.textContent='0';
-    questionBox.textContent = 'Press Start to begin — the dance name will appear here.';
-    infoLog('Reset complete.');
-    // clear guess points and heat
-    window._guessPoints = [];
-    if(heatLayer){ map.removeLayer(heatLayer); heatLayer = null; gameState.heatVisible=false; toggleHeatBtn.textContent = "Toggle Heatmap"; }
-    scoreChart.data.labels = []; scoreChart.data.datasets[0].data = []; scoreChart.update();
+if(timerInterval){ clearInterval(timerInterval); timerInterval = null; }
+gameState = {running:false,score:0,lives:3,round:0,timer:60,current:null,history:[],d3Visible:true,heatVisible:false};
+scoreEl.textContent = '0'; livesEl.textContent = '3'; timerEl.textContent = '60'; roundEl.textContent='0';
+questionBox.textContent = 'Press Start to begin — the dance name will appear here.';
+infoLog('Reset complete.');
+window._guessPoints = [];
+if(heatLayer){ try{ map.removeLayer(heatLayer); }catch(e){} heatLayer = null; gameState.heatVisible=false; toggleHeatBtn.textContent = "Toggle Heatmap"; }
+if(scoreChart){ scoreChart.data.labels=[]; scoreChart.data.datasets[0].data=[]; scoreChart.update(); }
 }
 
-function updateChart(){
-    const n = gameState.history.length;
-    scoreChart.data.labels = Array.from({length:n},(_,i)=>i+1);
-    scoreChart.data.datasets[0].data = gameState.history.slice();
-    scoreChart.update();
-}
-
-  // Heatmap toggle (shows the density of dance origins)
+/* ============== HEATMAP & D3 TOGGLE ============== */
 function toggleHeatmap(){
-    if(heatLayer){
-    map.removeLayer(heatLayer); heatLayer = null; gameState.heatVisible=false; toggleHeatBtn.textContent="Toggle Heatmap";
+if(!map){ infoLog("Map not initialized."); return; }
+if(heatLayer){
+    try{ map.removeLayer(heatLayer); }catch(e){}
+    heatLayer = null; gameState.heatVisible=false; toggleHeatBtn.textContent="Toggle Heatmap"; infoLog("Heatmap hidden.");
     return;
-    }
-    // create heat points from danceData (origins) + guesses optionally
-    const points = [];
-    window.danceData.forEach(d => points.push([d.lat,d.lng,0.6]));
-    if(window._guessPoints && window._guessPoints.length) window._guessPoints.forEach(p=>points.push(p));
-    heatLayer = L.heatLayer(points, {radius: 25}).addTo(map);
-    gameState.heatVisible=true;
-    toggleHeatBtn.textContent="Hide Heatmap";
+}
+const points = [];
+window.danceData.forEach(d => points.push([d.lat,d.lng,0.6]));
+if(window._guessPoints && window._guessPoints.length) window._guessPoints.forEach(p=>points.push(p));
+heatLayer = L.heatLayer(points, {radius:25}).addTo(map);
+gameState.heatVisible=true; toggleHeatBtn.textContent="Hide Heatmap"; infoLog("Heatmap shown.");
 }
 
-  // Toggle D3 overlay visibility
 function toggleD3(){
-    gameState.d3Visible = !gameState.d3Visible;
-    toggleD3Btn.textContent = gameState.d3Visible ? "Hide D3 Overlay" : "Show D3 Overlay";
+gameState.d3Visible = !gameState.d3Visible;
+toggleD3Btn.textContent = gameState.d3Visible ? "Hide D3 Overlay" : "Show D3 Overlay";
+infoLog(gameState.d3Visible ? "D3 overlay ON" : "D3 overlay OFF");
 }
 
-  // Expose function to load external dance data (array of {id,name,lat,lng})
+/* ============== DATA LOAD API ============== */
 window.loadDanceData = function(arr){
-    if(!Array.isArray(arr)) throw new Error("Provide an array");
-    window.danceData = arr.map((o,i)=>({id:o.id??(i+1), name:o.name || o.label || ("Dance "+(i+1)), lat:+o.lat, lng:+o.lng}));
-    infoLog("Loaded dance dataset with " + window.danceData.length + " items.");
+if(!Array.isArray(arr)) throw new Error("Provide an array");
+window.danceData = arr.map((o,i)=>({id:o.id??(i+1), name:o.name || o.label || ("Dance "+(i+1)), lat:+o.lat, lng:+o.lng}));
+infoLog("Loaded dance dataset with " + window.danceData.length + " items.");
 };
 
-  // Hook up UI buttons
+/* ============== UI HOOKS ============== */
 startBtn.addEventListener('click', startGame);
 nextBtn.addEventListener('click', ()=>{ if(gameState.running){ gameState.current=null; spawnQuestion(); } else infoLog("Start first."); });
 resetBtn.addEventListener('click', resetGame);
-toggleHeatBtn.addEventListener('click', toggleHeatmap);
+toggleHeatBtn.addEventListener('click', ()=>{ if(!map){ infoLog("Map not initialized — press Start."); } else toggleHeatmap(); });
 toggleD3Btn.addEventListener('click', toggleD3);
 
-  // Keep D3 overlay aligned when zooming/moving
-function repositionSVG(){
-    // No global redraw needed for transient visuals. If persistent overlays desired, keep a list of lat/lngs and redraw them here.
-}
-map.on("zoomend", repositionSVG);
-map.on("moveend", repositionSVG);
+/* ============== WELCOME VIDEO HANDLING ============== */
+/* If video fails to load (file missing or blocked), show image fallback */
+bgVideo.addEventListener('error', ()=>{ bgVideo.style.display='none'; bgImage.style.display='block'; infoLog("Video error — showing fallback image."); });
+bgVideo.addEventListener('stalled', ()=>{ /* ignore */ });
+bgVideo.addEventListener('loadeddata', ()=>{ /* ok */ });
 
-  // initial log
-infoLog("Ready. Press Start to play. Click map to submit your guess.");
+/* Also allow clicking main Welcome "Oyuna Başla" button to call startGame (already wired in markup) */
+document.querySelector('#welcomeScreen .btn').addEventListener('click', ()=> {
+  // small guard: if video present, ensure map init after video ready or immediately
+try{ startGame(); } catch(e){ console.error(e); startGame(); }
+});
+
+/* initial ready message */
+infoLog("Ready. Click 'Oyuna Başla' to initialize the map and start the game.");
 </script>
 </body>
 </html>
-
